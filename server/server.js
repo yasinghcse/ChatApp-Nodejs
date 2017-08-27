@@ -16,16 +16,36 @@ app.use(express.static(publicPath));
 io.on('connection',(socket)=>{
   console.log("##SERVER##=====>New User Connected");
 
-  //Event for sending message from server to client
+  //Greeting message from server to a newly Connected user
   socket.emit('newMessage',{
     from: "server",
-    text : "Hi... This is a message from server",
+    text : "Hi New User.. Welcome",
+    createdAt: new Date()
+  });
+
+  //Broadcast message from server to all connected user about a new joinee
+  socket.broadcast.emit('newMessage',{
+    from: "server",
+    text : "New User..connected to our chat room",
     createdAt: new Date()
   });
 
   //Event for listening new message from Client
   socket.on('createMessage',function(data){
     console.log('##SERVER##=====>Message from client : ', data);
+    //broadcasting message to all connected client except sender
+    // socket.broadcast.emit('newMessage',{
+    //   from: data.from,
+    //   text : data.text,
+    //   createdAt: new Date()
+    // });
+
+    //Sending message  to all connected client including sender
+    // io.emit('newMessage',{
+    //   from: data.from,
+    //   text : data.text,
+    //   createdAt: new Date()
+    // });
   });
 
   //Event for disconnect
