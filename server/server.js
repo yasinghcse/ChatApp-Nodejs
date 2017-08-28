@@ -4,6 +4,8 @@ const http = require('http');
 const socketIO= require('socket.io');
 const port = process.env.PORT||3000;
 const publicPath= path.join(__dirname,'../public');
+
+var {generateMessage}= require('./utils/message');
 var app= express();
 var server= http.createServer(app);
 //start accepting socket connection
@@ -17,18 +19,10 @@ io.on('connection',(socket)=>{
   console.log("##SERVER##=====>New User Connected");
 
   //Greeting message from server to a newly Connected user
-  socket.emit('newMessage',{
-    from: "server",
-    text : "Hi New User.. Welcome",
-    createdAt: new Date()
-  });
+  socket.emit('newMessage',generateMessage('server','Hi New User.. Welcome'));
 
   //Broadcast message from server to all connected user about a new joinee
-  socket.broadcast.emit('newMessage',{
-    from: "server",
-    text : "New User..connected to our chat room",
-    createdAt: new Date()
-  });
+  socket.broadcast.emit('newMessage',generateMessage("server","New User..connected to our chat room"));
 
   //Event for listening new message from Client
   socket.on('createMessage',function(data){
@@ -41,12 +35,7 @@ io.on('connection',(socket)=>{
     // });
 
     //Sending message  to all connected client including sender
-    // io.emit('newMessage',{
-    //   from: data.from,
-    //   text : data.text,
-    //   createdAt: new Date()
-    // });
-  });
+    io.emit('newMessage',generateMessage(data.from,data.text));
 
   //Event for disconnect
   socket.on('disconnect',()=>{
