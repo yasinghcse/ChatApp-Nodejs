@@ -7,6 +7,8 @@ socket.on('connect',function(){
   socket.emit('createMessage',{
     from : 'client 1',
     text : 'This is a message from client'
+  },function(data){
+    console.log('####Client###====> Message from server : ',data);
   });
 });
 

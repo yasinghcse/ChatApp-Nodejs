@@ -25,7 +25,7 @@ io.on('connection',(socket)=>{
   socket.broadcast.emit('newMessage',generateMessage("server","New User..connected to our chat room"));
 
   //Event for listening new message from Client
-  socket.on('createMessage',function(data){
+  socket.on('createMessage',function(data,callback){
     console.log('##SERVER##=====>Message from client : ', data);
     //broadcasting message to all connected client except sender
     // socket.broadcast.emit('newMessage',{
@@ -36,6 +36,8 @@ io.on('connection',(socket)=>{
 
     //Sending message  to all connected client including sender
     io.emit('newMessage',generateMessage(data.from,data.text));
+    callback("Data is Valid !!!");
+  });
 
   //Event for disconnect
   socket.on('disconnect',()=>{
