@@ -4,12 +4,12 @@ socket.on('connect',function(){
   console.log('Client connected to server');
 
   //event emitter for new message to server -- only when connect is created
-  socket.emit('createMessage',{
-    from : 'client 1',
-    text : 'This is a message from client'
-  },function(data){
-    console.log('####Client###====> Message from server : ',data);
-  });
+  // socket.emit('createMessage',{
+  //   from : 'client 1',
+  //   text : 'This is a message from client'
+  // },function(data){
+  //   console.log('####Client###====> Message from server : ',data);
+  // });
 });
 
 socket.on('disconnect',function(){
@@ -19,4 +19,16 @@ socket.on('disconnect',function(){
 //event listener for new message from server
 socket.on('newMessage',function(data){
   console.log('####Client###====> Message from server : ', data);
+  var li=jQuery('<li></li>');
+  li.text(`${data.from}: ${data.text}`);
+  jQuery('#messages').append(li);
+});
+
+jQuery('#message-form').on('submit',function(e){
+  e.preventDefault();
+  socket.emit('createMessage',{
+    from : 'client',
+    text : jQuery('[name=message]').val()
+  },function(){
+  });
 });
