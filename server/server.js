@@ -4,6 +4,7 @@ const http = require('http');
 const socketIO= require('socket.io');
 const port = process.env.PORT||3000;
 const publicPath= path.join(__dirname,'../public');
+const {Users}= require('./utils/users');
 
 var {generateMessage,generateLocationMessage}= require('./utils/message');
 var {isRealString}= require('./utils/validation');
@@ -11,6 +12,7 @@ var app= express();
 var server= http.createServer(app);
 //start accepting socket connection
 var io= socketIO(server);
+var users= new Users();
 
 //create route for all static pages
 app.use(express.static(publicPath));
@@ -28,6 +30,13 @@ io.on('connection',(socket)=>{
 
     //Assign user to a room
     socket.join(params.room);
+
+    //remove existing user with same id and add the current one
+    users.removeUser(socket.id);
+    users.addUser(socket.id, params.name, params.room);
+
+    //send event to all users to update the users listening
+    io.to(params.room).emit('updateUserList',users.getUserList(params.room));
 
     //Greeting message from server to a newly Connected user
     socket.emit('newMessage',generateMessage('server',`Hi ${params.name}.. Welcome`));
@@ -58,15 +67,20 @@ io.on('connection',(socket)=>{
     io.emit('newLocationMessage',generateLocationMessage('Admin',coords.latitude, coords.longitude));
   });
 
-
-
   //Event for disconnect
   socket.on('disconnect',()=>{
     console.log("##SERVER##=====>User Disconnected");
+
+    //remove the user from the room
+    var user= users.removeUser(socket.id);
+    if(user){
+      //broadcast the update user list
+      io.to(user.room).emit('updateUserList',users.getUserList(user.room));
+      //broadcast a messages about this user existing
+      io.to(user.room).emit('newMessage',generateMessage('Admin',`${user.name} has left`));
+    }
   });
 });
-
-
 
 
 server.listen(port,()=>{
