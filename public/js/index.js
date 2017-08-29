@@ -16,6 +16,24 @@ socket.on('disconnect',function(){
   console.log('Client disconnected from server');
 });
 
+//autoscrolling feature
+function scrollToBottom(){
+  //Selectors
+  var messages= jQuery('#messages');
+  var newMessage = messages.children('li:last-child');
+  //Heights
+  var clientHeight=messages.prop('clientHeight');
+  var scrollTop=messages.prop('scrollTop');
+  var scrollHeight=messages.prop('scrollHeight');
+  var newMessageHeight=newMessage.innerHeight();
+  var lastMessageHeight=newMessage.prev().innerHeight();
+
+  if(clientHeight + scrollTop + newMessageHeight + lastMessageHeight >=scrollHeight){
+    console.log("hiiiiiiiiiiiiiii");
+    messages.scrollTop(scrollHeight);
+  }
+}
+
 //event listener for new message from server
 socket.on('newMessage',function(data){
   console.log('####Client###====> Message from server : ', data);
@@ -31,6 +49,7 @@ socket.on('newMessage',function(data){
     createdAt: formattedTime
   });
   jQuery('#messages').append(html);
+  scrollToBottom();
 });
 
 //displaying user chat messages
@@ -83,4 +102,5 @@ socket.on('newLocationMessage',function(message){
     url: message.url
   });
   jQuery('#messages').append(html);
+  scrollToBottom();
 });
