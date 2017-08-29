@@ -1,15 +1,16 @@
 var socket= io();
 
 socket.on('connect',function(){
-  console.log('Client connected to server');
-
-  //event emitter for new message to server -- only when connect is created
-  // socket.emit('createMessage',{
-  //   from : 'client 1',
-  //   text : 'This is a message from client'
-  // },function(data){
-  //   console.log('####Client###====> Message from server : ',data);
-  // });
+  var params = jQuery.deparam(window.location.search);
+  socket.emit('join',params,function(err){
+    if(err){
+      alert(err);
+      window.location.href ='/';
+    }
+    else{
+      console.log('No Error');
+    }
+  });;
 });
 
 socket.on('disconnect',function(){

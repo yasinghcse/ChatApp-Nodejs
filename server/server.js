@@ -6,6 +6,7 @@ const port = process.env.PORT||3000;
 const publicPath= path.join(__dirname,'../public');
 
 var {generateMessage,generateLocationMessage}= require('./utils/message');
+var {isRealString}= require('./utils/validation');
 var app= express();
 var server= http.createServer(app);
 //start accepting socket connection
@@ -18,11 +19,24 @@ app.use(express.static(publicPath));
 io.on('connection',(socket)=>{
   console.log("##SERVER##=====>New User Connected");
 
-  //Greeting message from server to a newly Connected user
-  socket.emit('newMessage',generateMessage('server','Hi New User.. Welcome'));
+  //Chat Room Handling
+  socket.on('join', (params, callback)=>{
+    console.log(`name = ${params.name}; room = ${params.room}`);
+    if(!isRealString(params.name) || !isRealString(params.room)){
+      callback('Name and Room name are required');
+    }
 
-  //Broadcast message from server to all connected user about a new joinee
-  socket.broadcast.emit('newMessage',generateMessage("server","New User..connected to our chat room"));
+    //Assign user to a room
+    socket.join(params.room);
+
+    //Greeting message from server to a newly Connected user
+    socket.emit('newMessage',generateMessage('server',`Hi ${params.name}.. Welcome`));
+
+    //Broadcast message from server to all connected user in a room about a new joinee
+    socket.broadcast.to(params.room).emit('newMessage',generateMessage("server",`${params.name} joined our chat room`));
+
+    callback();
+  });
 
   //Event for listening new message from Client
   socket.on('createMessage',function(data,callback){
@@ -43,6 +57,8 @@ io.on('connection',(socket)=>{
   socket.on('createLocationMessage',(coords)=>{
     io.emit('newLocationMessage',generateLocationMessage('Admin',coords.latitude, coords.longitude));
   });
+
+
 
   //Event for disconnect
   socket.on('disconnect',()=>{
