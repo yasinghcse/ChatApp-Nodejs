@@ -14,7 +14,7 @@
     <ol id="messages" class="chat__messages"></ol>
     <div class="chat__footer">
       <form id = "message-form">
-        <input name="message" type="text" placeholder="Message" autofocus autocomplete="false"/>
+        <input name="message" type="text" placeholder="Message" autocomplete="false" autofocus="true"/>
         <button>Send</button>
       </form>
       <button id= "send-location">Send Location</button>
@@ -24,6 +24,7 @@
 
 
   <script src = "/js/lib/jquery-3.2.1.min.js"></script>
+  <script src = "/js/lib/moment.js"></script>
   <script src= "/socket.io/socket.io.js"></script>
   <script src = "/js/index.js"></script>
 </body>
