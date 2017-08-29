@@ -20,57 +20,50 @@ app.use(express.static(publicPath));
 //registering event handler
 io.on('connection',(socket)=>{
   console.log("##SERVER##=====>New User Connected");
-
   //Chat Room Handling
   socket.on('join', (params, callback)=>{
     console.log(`name = ${params.name}; room = ${params.room}`);
     if(!isRealString(params.name) || !isRealString(params.room)){
       callback('Name and Room name are required');
     }
-
     //Assign user to a room
     socket.join(params.room);
-
     //remove existing user with same id and add the current one
     users.removeUser(socket.id);
     users.addUser(socket.id, params.name, params.room);
-
     //send event to all users to update the users listening
     io.to(params.room).emit('updateUserList',users.getUserList(params.room));
-
     //Greeting message from server to a newly Connected user
     socket.emit('newMessage',generateMessage('server',`Hi ${params.name}.. Welcome`));
-
     //Broadcast message from server to all connected user in a room about a new joinee
     socket.broadcast.to(params.room).emit('newMessage',generateMessage("server",`${params.name} joined our chat room`));
-
     callback();
   });
 
   //Event for listening new message from Client
   socket.on('createMessage',function(data,callback){
     console.log('##SERVER##=====>Message from client : ', data);
-    //broadcasting message to all connected client except sender
-    // socket.broadcast.emit('newMessage',{
-    //   from: data.from,
-    //   text : data.text,
-    //   createdAt: new Date()
-    // });
-
-    //Sending message  to all connected client including sender
-    io.emit('newMessage',generateMessage(data.from,data.text));
+    //Get this current user
+    var user = users.getUser(socket.id);
+    if(user && isRealString(data.text)){
+      //Sending message  to all connected client including sender in a current room only
+      io.to(user.room).emit('newMessage',generateMessage(user.name,data.text));
+    }
     callback("Data is Valid !!!");
   });
 
   //Event listener for recieving location messages
   socket.on('createLocationMessage',(coords)=>{
-    io.emit('newLocationMessage',generateLocationMessage('Admin',coords.latitude, coords.longitude));
+    //Get this current user
+    var user = users.getUser(socket.id);
+    if(user){
+      io.to(user.room).emit('newLocationMessage',generateLocationMessage(user.name,coords.latitude, coords.longitude));
+    }
   });
 
   //Event for disconnect
   socket.on('disconnect',()=>{
     console.log("##SERVER##=====>User Disconnected");
-
     //remove the user from the room
     var user= users.removeUser(socket.id);
     if(user){
